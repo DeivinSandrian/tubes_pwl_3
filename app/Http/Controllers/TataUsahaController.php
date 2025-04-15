@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Surat;
@@ -9,74 +10,112 @@ use Illuminate\Support\Facades\Storage;
 
 class TataUsahaController extends Controller
 {
+    /**
+     * Display approved letters ready for processing
+     */
     public function dashboard()
     {
-        $surat = Surat::where('status_pengajuan', 'disetujui')
-            ->whereHas('user', function ($query) {
+        $letters = Surat::with(['user', 'persetujuan', 'uploadSurat'])
+            ->where('status_pengajuan', 'approved')
+            ->whereHas('user', function($query) {
                 $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })->with('persetujuan', 'upload_surat')->get();
+            })
+            ->latest()
+            ->get();
 
-        return view('tata_usaha.dashboard', compact('surat'));
+        return view('tata_usaha.dashboard', compact('letters'));
     }
 
-    public function showCreateLetterForm($id)
+    /**
+     * Show letter creation form
+     */
+    public function showCreateForm($id)
     {
-        $surat = Surat::where('id_surat', $id)
-            ->where('status_pengajuan', 'disetujui')
-            ->whereHas('user', function ($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })->with('persetujuan')->firstOrFail();
-
-        $letterNumber = 'SURAT-' . $surat->id_surat . '-' . date('Ymd');
-        $letterDate = now()->toDateString();
-
-        return view('tata_usaha.create_letter', compact('surat', 'letterNumber', 'letterDate'));
-    }
-
-    public function storeLetter(Request $request)
-    {
-        $request->validate([
-            'surat_id' => 'required|exists:surat,id_surat',
+        $letter = $this->getValidApprovedLetter($id);
+        $letterNumber = $this->generateLetterNumber($letter);
+        
+        return view('tata_usaha.create_letter', [
+            'letter' => $letter,
+            'letterNumber' => $letterNumber,
+            'letterDate' => now()->format('Y-m-d')
         ]);
-
-        return redirect()->route('tata_usaha.upload_letter_form', $request->surat_id)
-            ->with('success', 'Letter details saved. Please upload the letter.');
     }
 
-    public function showUploadLetterForm($id)
-    {
-        $surat = Surat::where('id_surat', $id)
-            ->where('status_pengajuan', 'disetujui')
-            ->whereHas('user', function ($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })->firstOrFail();
-
-        return view('tata_usaha.upload_letter', compact('surat'));
-    }
-
-    public function uploadLetter(Request $request)
+    /**
+     * Process letter upload
+     */
+    public function uploadLetter(Request $request, $id)
     {
         $request->validate([
-            'surat_id' => 'required|exists:surat,id_surat',
             'file_surat' => 'required|file|mimes:pdf|max:2048',
         ]);
 
-        $surat = Surat::where('id_surat', $request->surat_id)
-            ->where('status_pengajuan', 'disetujui')
-            ->whereHas('user', function ($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })->firstOrFail();
-
+        $letter = $this->getValidApprovedLetter($id);
+        
         $filePath = $request->file('file_surat')->store('letters', 'public');
 
         UploadSurat::create([
             'file_surat' => $filePath,
-            'tanggal_upload' => now()->toDateString(),
+            'tanggal_upload' => now(),
             'status_upload' => 'uploaded',
-            'surat_id_surat' => $surat->id_surat,
-            'surat_user_id_user' => $surat->user_id_user,
+            'surat_id_surat' => $letter->id_surat,
+            'surat_user_id_user' => $letter->user_id_user,
         ]);
 
-        return redirect()->route('tata_usaha.dashboard')->with('success', 'Letter uploaded successfully.');
+        $letter->update(['status_pengajuan' => 'completed']);
+
+        return redirect()
+            ->route('tata_usaha.dashboard')
+            ->with('success', 'Surat berhasil diunggah');
     }
+
+    /**
+     * Helper method to validate and fetch approved letter
+     */
+    protected function getValidApprovedLetter($id)
+    {
+        return Surat::where('id_surat', $id)
+            ->where('status_pengajuan', 'approved')
+            ->whereHas('user', function($query) {
+                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
+            })
+            ->firstOrFail();
+    }
+
+    /**
+     * Generate formatted letter number
+     */
+    protected function generateLetterNumber(Surat $letter)
+    {
+        return sprintf('SURAT/%s/%s/%s', 
+            $letter->id_surat, 
+            $letter->user->programStudi->name_prod, 
+            now()->format('Ymd')
+        );
+    }
+
+    public function upload(Request $request, $id)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:pdf|max:2048', // PDF files, max 2MB
+    ]);
+
+    $pengajuan = Pengajuan::findOrFail($id);
+
+    if ($pengajuan->status !== 'approved') {
+        return redirect()->route('tatausaha.letters')->with('error', 'Cannot upload document for this request.');
+    }
+
+    $file = $request->file('file');
+    $filePath = $file->store('letters', 'public'); // Store in storage/app/public/letters
+
+    DetailSurat::create([
+        'pengajuan_id_pengajuan' => $pengajuan->id_pengajuan,
+        'file_path' => $filePath,
+    ]);
+
+    $pengajuan->update(['status' => 'completed']);
+
+    return redirect()->route('tatausaha.letters')->with('success', 'Document uploaded successfully.');
+}
 }

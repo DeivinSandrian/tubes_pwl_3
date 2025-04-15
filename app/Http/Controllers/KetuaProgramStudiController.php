@@ -9,104 +9,76 @@ use Illuminate\Support\Facades\Auth;
 class KetuaProgramStudiController extends Controller
 {
     /**
-     * Display the dashboard with pending letter requests for the Ketua's program.
-     *
-     * @return \Illuminate\View\View
+     * Display pending letters for approval
      */
     public function dashboard()
     {
-        // Fetch pending letters for the Ketua's program study
-        $letters = Surat::where('status_pengajuan', 'pending')
-            ->whereHas('user', function ($query) {
+        $letters = Surat::with(['user', 'detail'])
+            ->where('status_pengajuan', 'pending')
+            ->whereHas('user', function($query) {
                 $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
             })
-            ->with('detail', 'user')
+            ->latest()
             ->get();
 
         return view('ketua_program_studi.dashboard', compact('letters'));
     }
 
     /**
-     * Show the form to approve or reject a letter request.
-     *
-     * @param int $id The ID of the letter (id_surat)
-     * @return \Illuminate\View\View
+     * Show approval form for a specific letter
      */
-    public function approveLetter($id)
+    public function showApprovalForm($id)
     {
-        // Fetch the letter, ensuring it belongs to the Ketua's program study
-        $letter = Surat::where('id_surat', $id)
-            ->whereHas('user', function ($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })
-            ->with('detail', 'user')
-            ->firstOrFail();
-
-        // Ensure the letter is still pending
-        if ($letter->status_pengajuan !== 'pending') {
-            return redirect()->route('ketua.dashboard')->with('error', 'This letter has already been processed.');
-        }
-
+        $letter = $this->getValidLetter($id);
+        
         return view('ketua_program_studi.approve_letter', compact('letter'));
     }
 
     /**
-     * Handle the approval of a letter request.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id The ID of the letter (id_surat)
-     * @return \Illuminate\Http\RedirectResponse
+     * Process letter approval
      */
-    public function storeApproval(Request $request, $id)
+    public function approveLetter(Request $request, $id)
     {
-        // Fetch the letter, ensuring it belongs to the Ketua's program study
-        $letter = Surat::where('id_surat', $id)
-            ->whereHas('user', function ($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })
-            ->firstOrFail();
-
-        // Ensure the letter is still pending
-        if ($letter->status_pengajuan !== 'pending') {
-            return redirect()->route('ketua.dashboard')->with('error', 'This letter has already been processed.');
-        }
-
-        // Update the letter status to approved
+        $letter = $this->getValidLetter($id);
+        
         $letter->update([
             'status_pengajuan' => 'approved',
             'tanggal_persetujuan' => now(),
         ]);
 
-        return redirect()->route('ketua.dashboard')->with('success', 'Letter approved successfully.');
+        return redirect()
+            ->route('ketua.dashboard')
+            ->with('success', 'Surat berhasil disetujui');
     }
 
     /**
-     * Handle the rejection of a letter request.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id The ID of the letter (id_surat)
-     * @return \Illuminate\Http\RedirectResponse
+     * Process letter rejection
      */
     public function rejectLetter(Request $request, $id)
     {
-        // Fetch the letter, ensuring it belongs to the Ketua's program study
-        $letter = Surat::where('id_surat', $id)
-            ->whereHas('user', function ($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })
-            ->firstOrFail();
-
-        // Ensure the letter is still pending
-        if ($letter->status_pengajuan !== 'pending') {
-            return redirect()->route('ketua.dashboard')->with('error', 'This letter has already been processed.');
-        }
-
-        // Update the letter status to rejected
+        $letter = $this->getValidLetter($id);
+        
         $letter->update([
             'status_pengajuan' => 'rejected',
             'tanggal_persetujuan' => now(),
         ]);
 
-        return redirect()->route('ketua.dashboard')->with('success', 'Letter rejected successfully.');
+        return redirect()
+            ->route('ketua.dashboard')
+            ->with('success', 'Surat berhasil ditolak');
+    }
+
+    /**
+     * Helper method to validate and fetch letter
+     */
+    protected function getValidLetter($id)
+    {
+        return Surat::with(['user', 'detail'])
+            ->where('id_surat', $id)
+            ->where('status_pengajuan', 'pending')
+            ->whereHas('user', function($query) {
+                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
+            })
+            ->firstOrFail();
     }
 }

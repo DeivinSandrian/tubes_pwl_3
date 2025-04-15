@@ -1,51 +1,52 @@
 <?php
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\MahasiswaController;
+
 use App\Http\Controllers\KetuaProgramStudiController;
+use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\TataUsahaController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Support\Facades\Route;
 
-// Authentication Routes
-Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('login', [LoginController::class, 'login']);
-Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+// Redirect root to login
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
-Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('register', [RegisterController::class, 'register']);
+// Authentication Routes (replacing Auth::routes())
+Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
+Route::post('login', [AuthenticatedSessionController::class, 'store']);
+Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
+Route::post('register', [RegisteredUserController::class, 'store']);
 
-// Role-Based Routes (protected by authentication and role middleware)
-Route::middleware(['auth'])->group(function () {
-    // Mahasiswa Routes
-    Route::prefix('mahasiswa')->name('mahasiswa.')->middleware('role:mahasiswa')->group(function () {
-        Route::get('dashboard', [MahasiswaController::class, 'dashboard'])->name('dashboard');
-        Route::get('submit-letter', [MahasiswaController::class, 'submitLetter'])->name('submit_letter');
-        Route::post('submit-letter', [MahasiswaController::class, 'storeLetter'])->name('store_letter');
-        Route::get('letters', [MahasiswaController::class, 'viewLetters'])->name('letters');
-        Route::get('letters/{id}/download', [MahasiswaController::class, 'downloadLetter'])->name('download_letter');
-    });
+Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 
-    // Ketua Program Studi Routes
-    Route::prefix('ketua')->name('ketua.')->middleware('role:ketua')->group(function () {
-        Route::get('dashboard', [KetuaProgramStudiController::class, 'dashboard'])->name('dashboard');
-        Route::get('approve-letter/{id}', [KetuaProgramStudiController::class, 'approveLetter'])->name('approve_letter');
-        Route::post('approve-letter/{id}', [KetuaProgramStudiController::class, 'storeApproval'])->name('store_approval');
-        Route::post('reject-letter/{id}', [KetuaProgramStudiController::class, 'rejectLetter'])->name('reject_letter');
-    });
+// Mahasiswa Routes
+Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
+    Route::get('mahasiswa/dashboard', [MahasiswaController::class, 'dashboard'])->name('mahasiswa.dashboard');
+    Route::get('mahasiswa/letters', [MahasiswaController::class, 'letters'])->name('mahasiswa.letters');
+    Route::get('mahasiswa/letters/create', [MahasiswaController::class, 'create'])->name('mahasiswa.letters.create');
+    Route::post('mahasiswa/letters', [MahasiswaController::class, 'store'])->name('mahasiswa.letters.store');
+    Route::get('mahasiswa/letters/{id}', [MahasiswaController::class, 'show'])->name('mahasiswa.letters.show');
+});
 
-    // Tata Usaha Routes
-    Route::prefix('tatausaha')->name('tatausaha.')->middleware('role:tatausaha')->group(function () {
-        Route::get('dashboard', [TataUsahaController::class, 'dashboard'])->name('dashboard');
-        Route::get('create-letter', [TataUsahaController::class, 'createLetter'])->name('create_letter');
-        Route::post('create-letter', [TataUsahaController::class, 'storeLetter'])->name('store_letter');
-        Route::get('upload-letter', [TataUsahaController::class, 'uploadLetter'])->name('upload_letter');
-        Route::post('upload-letter', [TataUsahaController::class, 'storeUpload'])->name('store_upload');
-    });
+// Ketua Routes
+Route::middleware(['auth', 'role:ketua'])->group(function () {
+    Route::get('ketua/dashboard', [KetuaProgramStudiController::class, 'dashboard'])->name('ketua.dashboard');
+    Route::get('ketua/letters', [KetuaProgramStudiController::class, 'letters'])->name('ketua.letters');
+    Route::post('ketua/letters/{id}/approve', [KetuaProgramStudiController::class, 'approve'])->name('ketua.letters.approve');
+    Route::post('ketua/letters/{id}/reject', [KetuaProgramStudiController::class, 'reject'])->name('ketua.letters.reject');
+});
+
+// Tata Usaha Routes
+Route::middleware(['auth', 'role:tatausaha'])->group(function () {
+    Route::get('tatausaha/dashboard', [TataUsahaController::class, 'dashboard'])->name('tatausaha.dashboard');
+    Route::get('tatausaha/letters', [TataUsahaController::class, 'letters'])->name('tatausaha.letters');
+    Route::post('tatausaha/letters/{id}/upload', [TataUsahaController::class, 'upload'])->name('tatausaha.letters.upload');
 });

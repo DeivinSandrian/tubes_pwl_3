@@ -1,22 +1,23 @@
 <?php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DetailSurat extends Model
 {
+    use HasFactory;
+
     protected $table = 'detail_surat';
     protected $primaryKey = 'id_detail_surat';
-    public $timestamps = true;
 
     protected $fillable = [
-        'surat_id_surat',
-        'surat_user_id_user',
-        'alasan_pengajuan',
+        'pengajuan_id_pengajuan',
+        'file_path',
     ];
 
-    public function surat()
+    public function pengajuan()
     {
-        return $this->belongsTo(Surat::class, 'surat_id_surat', 'id_surat');
+        return $this->belongsTo(Pengajuan::class, 'pengajuan_id_pengajuan', 'id_pengajuan');
     }
 }

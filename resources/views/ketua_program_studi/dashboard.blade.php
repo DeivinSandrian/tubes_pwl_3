@@ -2,37 +2,46 @@
 
 @section('content')
 <div class="container">
-    <h2>Ketua Program Studi Dashboard</h2>
+    <h2>Daftar Pengajuan Surat</h2>
+    
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
     @endif
-    <table class="table table-dark">
-        <thead>
-            <tr>
-                <th>Jenis Surat</th>
-                <th>Nama Mahasiswa</th>
-                <th>Status Pengajuan</th>
-                <th>Tanggal Pengajuan</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($surat as $s)
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td>{{ $s->jenis_surat }}</td>
-                    <td>{{ $s->user->nama }}</td>
-                    <td>{{ $s->status_pengajuan }}</td>
-                    <td>{{ $s->tanggal_pengajuan }}</td>
-                    <td>
-                        @if(!$s->persetujuan)
-                            <a href="{{ route('ketua_program_studi.approve_letter', $s->id_surat) }}" class="btn btn-primary btn-sm">Proses</a>
-                        @else
-                            <span class="text-muted">Processed</span>
-                        @endif
-                    </td>
+                    <th>No</th>
+                    <th>Jenis Surat</th>
+                    <th>Mahasiswa</th>
+                    <th>Tanggal Pengajuan</th>
+                    <th>Aksi</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @forelse($letters as $index => $letter)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ ucfirst($letter->jenis_surat) }}</td>
+                        <td>{{ $letter->user->name }}</td>
+                        <td>{{ $letter->created_at->format('d/m/Y') }}</td>
+                        <td>
+                            <a href="{{ route('ketua.approve.form', $letter->id_surat) }}" 
+                               class="btn btn-sm btn-primary">
+                                Proses
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center">Tidak ada pengajuan surat</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 @endsection

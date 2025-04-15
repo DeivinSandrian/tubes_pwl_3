@@ -5,15 +5,25 @@ use App\Models\ProgramStudi;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Seed Program Studi
-        $ti = ProgramStudi::create(['nama_prodi' => 'Teknik Informatika']);
-        $si = ProgramStudi::create(['nama_prodi' => 'Sistem Informasi']);
-        $mik = ProgramStudi::create(['nama_prodi' => 'Magister Ilmu Komputer']);
+        // Seed Program Studi using DB::table to avoid timestamp issues
+        $programStudiData = [
+            ['nama_prodi' => 'Teknik Informatika'],
+            ['nama_prodi' => 'Sistem Informasi'],
+            ['nama_prodi' => 'Magister Ilmu Komputer'],
+        ];
+
+        DB::table('program_studi')->insert($programStudiData);
+
+        // Fetch the inserted program studies to get their IDs
+        $ti = ProgramStudi::where('nama_prodi', 'Teknik Informatika')->first();
+        $si = ProgramStudi::where('nama_prodi', 'Sistem Informasi')->first();
+        $mik = ProgramStudi::where('nama_prodi', 'Magister Ilmu Komputer')->first();
 
         // Seed Users
         User::create([
@@ -40,7 +50,6 @@ class DatabaseSeeder extends Seeder
             'program_studi_id_prodi' => $ti->id_prodi,
         ]);
 
-        // Add users for other programs as needed
         User::create([
             'nama' => 'Mahasiswa SI',
             'email' => 'mahasiswa.si@example.com',
@@ -64,5 +73,11 @@ class DatabaseSeeder extends Seeder
             'role' => 'tatausaha',
             'program_studi_id_prodi' => $si->id_prodi,
         ]);
+        
+        $this->call([
+            ProgramStudiSeeder::class,
+            SuratSeeder::class,
+        ]);
     }
+
 }
