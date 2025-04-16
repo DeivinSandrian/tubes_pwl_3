@@ -5,7 +5,17 @@
 @section('content')
 
 <div class="main-panel">
-    <div class="content-wrapper">
+        <!-- Tampilkan pesan sukses/error jika ada -->
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
             <!-- Tampilkan notifikasi -->
         @if ($notifications->count() > 0)
             <div class="card mb-4">

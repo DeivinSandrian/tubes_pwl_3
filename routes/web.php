@@ -3,6 +3,8 @@
 use App\Http\Controllers\KetuaProgramStudiController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\TataUsahaController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -15,22 +17,22 @@ Route::get('/', function () {
 });
 
 // First-time Admin Registration (only accessible if no admin exists)
-Route::get('admin/register', [App\Http\Controllers\AdminController::class, 'register'])->name('admin.register');
-Route::post('admin/register', [App\Http\Controllers\AdminController::class, 'store']);
+Route::get('admin/register', [AdminController::class, 'register'])->name('admin.register');
+Route::post('admin/register', [AdminController::class, 'store']);
 
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
     // Admin Dashboard
-    Route::get('admin/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     
 
     // Manage Users (Mahasiswa, Ketua, Tata Usaha)
-    Route::resource('admin/users', App\Http\Controllers\Admin\UserController::class)->names('admin.users');
+    Route::resource('admin/users', UserController::class)->names('admin.users');
 
     // Manage Kaprodi and Tata Usaha Roles
-    Route::get('admin/roles', [App\Http\Controllers\AdminController::class, 'manageRoles'])->name('admin.roles');
-    Route::post('admin/roles/kaprodi', [App\Http\Controllers\AdminController::class, 'updateKaprodi'])->name('admin.roles.kaprodi');
-    Route::post('admin/roles/tatausaha', [App\Http\Controllers\AdminController::class, 'updateTataUsaha'])->name('admin.roles.tatausaha');
+    Route::get('admin/roles', [AdminController::class, 'manageRoles'])->name('admin.roles');
+    Route::post('admin/roles/kaprodi', [AdminController::class, 'updateKaprodi'])->name('admin.roles.kaprodi');
+    Route::post('admin/roles/tatausaha', [AdminController::class, 'updateTataUsaha'])->name('admin.roles.tatausaha');
 });
 
 // Authentication Routes (replacing Auth::routes())

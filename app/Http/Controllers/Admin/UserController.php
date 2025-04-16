@@ -26,7 +26,7 @@ class UserController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:100',
-            'email' => 'required|string|email|max:100|unique:users',
+            'email' => 'required|string|email|max:100|unique:user,email',
             'password' => 'required|string|min:8',
             'role' => 'required|in:mahasiswa,ketua,tatausaha',
             'program_studi_id_prodi' => 'required|exists:program_studi,id_prodi',
@@ -54,7 +54,7 @@ class UserController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:100',
-            'email' => 'required|string|email|max:100|unique:users,email,' . $id . ',id_user',
+            'email' => 'required|string|email|max:100|unique:user,email,' . $id . ',id_user',
             'role' => 'required|in:mahasiswa,ketua,tatausaha',
             'program_studi_id_prodi' => 'required|exists:program_studi,id_prodi',
         ]);
