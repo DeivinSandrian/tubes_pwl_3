@@ -3,9 +3,6 @@
 @section('title', 'Create Letter Request')
 
 @section('content')
-    <div class="container-scroller">
-        <div class="container-fluid page-body-wrapper">
-            @include('layouts.sidebar')
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div class="row">
@@ -47,6 +44,4 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 @endsection 

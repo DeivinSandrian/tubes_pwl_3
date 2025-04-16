@@ -3,7 +3,7 @@
 @section('title', 'Register')
 
 @section('content')
-    <h4>Register a New Account</h4>
+    <h3 class="card-title text-left mb-3">Register a New Account</h3>
     <h6 class="fw-light">Fill in the details to get started.</h6>
     @if (session('status'))
         <div class="alert alert-success mb-4">

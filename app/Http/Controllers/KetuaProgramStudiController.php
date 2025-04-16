@@ -13,16 +13,18 @@ class KetuaProgramStudiController extends Controller
      */
     public function dashboard()
     {
-        $letters = Surat::with(['user', 'detail'])
-            ->where('status_pengajuan', 'pending')
-            ->whereHas('user', function($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })
-            ->latest()
+        $user = Auth::user();
+        $surats = Surat::where('program_studi_id_prodi', $user->program_studi_id_prodi)
+            // ->where('status_pengajuan', 'pending')
+            ->with('user')
             ->get();
 
-        return view('ketua_program_studi.dashboard', compact('letters'));
+        return view('ketua_program_studi.dashboard', compact('surats'));
     }
+    // $user = Auth::user();
+    // $surats = Surat::where('user_id_user', $user->id_user)->with('programStudi')->get();
+    // return view('ketua_program_studi.dashboard', compact('surats'));
+    // }
 
     /**
      * Show approval form for a specific letter
@@ -34,38 +36,37 @@ class KetuaProgramStudiController extends Controller
         return view('ketua_program_studi.approve_letter', compact('letter'));
     }
 
-    /**
-     * Process letter approval
-     */
-    public function approveLetter(Request $request, $id)
+    public function approve($id)
     {
-        $letter = $this->getValidLetter($id);
-        
-        $letter->update([
-            'status_pengajuan' => 'approved',
-            'tanggal_persetujuan' => now(),
-        ]);
+        // Cari surat berdasarkan id_surat
+        $surat = Surat::findOrFail($id);
 
-        return redirect()
-            ->route('ketua.dashboard')
-            ->with('success', 'Surat berhasil disetujui');
+        // Pastikan hanya ketua yang bisa melakukan aksi ini dan surat berstatus pending
+        if (Auth::user()->role === 'ketua' && $surat->status_pengajuan === 'pending') {
+            $surat->status_pengajuan = 'approved';
+            $surat->save();
+
+            return redirect()->route('ketua.dashboard')->with('success', 'Surat berhasil disetujui.');
+        }
+
+        return redirect()->route('ketua.dashboard')->with('error', 'Aksi tidak diizinkan.');
     }
 
-    /**
-     * Process letter rejection
-     */
-    public function rejectLetter(Request $request, $id)
-    {
-        $letter = $this->getValidLetter($id);
-        
-        $letter->update([
-            'status_pengajuan' => 'rejected',
-            'tanggal_persetujuan' => now(),
-        ]);
 
-        return redirect()
-            ->route('ketua.dashboard')
-            ->with('success', 'Surat berhasil ditolak');
+    public function reject($id)
+    {
+        // Cari surat berdasarkan id_surat
+        $surat = Surat::findOrFail($id);
+
+        // Pastikan hanya ketua yang bisa melakukan aksi ini dan surat berstatus pending
+        if (Auth::user()->role === 'ketua' && $surat->status_pengajuan === 'pending') {
+            $surat->status_pengajuan = 'rejected';
+            $surat->save();
+
+            return redirect()->route('ketua.dashboard')->with('success', 'Surat berhasil ditolak.');
+        }
+
+        return redirect()->route('ketua.dashboard')->with('error', 'Aksi tidak diizinkan.');
     }
 
     /**
@@ -80,5 +81,34 @@ class KetuaProgramStudiController extends Controller
                 $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
             })
             ->firstOrFail();
+    }
+
+    public function show($id)
+    {
+    $surat = Surat::findOrFail($id);
+
+    // // Pastikan hanya user yang mengajukan yang bisa lihat
+    // if ($surat->user_id_user !== Auth::id()) {
+    //     return redirect()->route('mahasiswa.dashboard')->with('error', 'Anda tidak memiliki akses ke surat ini.');
+    // }
+
+    // Tentukan view berdasarkan jenis surat
+    $viewMap = [
+        'SKMA' => 'mahasiswa.letters.show-skma',
+        'SKT' => 'mahasiswa.letters.show-skt',
+        'SPTMK' => 'mahasiswa.letters.show-sptmk',
+        'LHS' => 'mahasiswa.letters.show-lhs',
+    ];
+
+    $jenis = $surat->jenis_surat;
+
+    if (!array_key_exists($jenis, $viewMap)) {
+        return redirect()->route('ketua.dashboard')->with('error', 'Jenis surat tidak dikenali.');
+    }
+
+    return view($viewMap[$jenis], [
+        'surat' => $surat,
+        'title' => 'Detail Surat ' . $jenis,
+    ]);
     }
 }

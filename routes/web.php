@@ -29,11 +29,16 @@ Route::post('reset-password', [NewPasswordController::class, 'store'])->name('pa
 
 // Mahasiswa Routes
 Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
-    Route::get('mahasiswa/dashboard', [MahasiswaController::class, 'dashboard'])->name('mahasiswa.dashboard');
-    Route::get('mahasiswa/letters', [MahasiswaController::class, 'letters'])->name('mahasiswa.letters');
-    Route::get('mahasiswa/letters/create', [MahasiswaController::class, 'create'])->name('mahasiswa.letters.create');
-    Route::post('mahasiswa/letters', [MahasiswaController::class, 'store'])->name('mahasiswa.letters.store');
-    Route::get('mahasiswa/letters/{id}', [MahasiswaController::class, 'show'])->name('mahasiswa.letters.show');
+    // Route::get('mahasiswa/dashboard', [MahasiswaController::class, 'dashboard'])->name('mahasiswa.dashboard');
+    // Route::get('mahasiswa/letters', [MahasiswaController::class, 'letters'])->name('mahasiswa.letters');
+    // Route::get('mahasiswa/letters/create', [MahasiswaController::class, 'create'])->name('mahasiswa.letters.create');
+    // Route::post('mahasiswa/letters', [MahasiswaController::class, 'store'])->name('mahasiswa.letters.store');
+    // Route::get('mahasiswa/letters/{id}', [MahasiswaController::class, 'show'])->name('mahasiswa.letters.show');
+    Route::get('/dashboard', [MahasiswaController::class, 'dashboard'])->name('mahasiswa.dashboard');
+    Route::get('/letters', [MahasiswaController::class, 'letters'])->name('mahasiswa.letters');
+    Route::get('/letters/create/{type}', [MahasiswaController::class, 'create'])->name('mahasiswa.letters.create');
+    Route::post('/letters/store', [MahasiswaController::class, 'store'])->name('mahasiswa.letters.store');
+    Route::get('/letters/{id}', [MahasiswaController::class, 'show'])->name('mahasiswa.letters.show');
 });
 
 // Ketua Routes
@@ -42,6 +47,7 @@ Route::middleware(['auth', 'role:ketua'])->group(function () {
     Route::get('ketua/letters', [KetuaProgramStudiController::class, 'letters'])->name('ketua.letters');
     Route::post('ketua/letters/{id}/approve', [KetuaProgramStudiController::class, 'approve'])->name('ketua.letters.approve');
     Route::post('ketua/letters/{id}/reject', [KetuaProgramStudiController::class, 'reject'])->name('ketua.letters.reject');
+    Route::get('ketua/letters/{id}', [KetuaProgramStudiController::class, 'show'])->name('ketua.letters.show');
 });
 
 // Tata Usaha Routes
@@ -49,4 +55,15 @@ Route::middleware(['auth', 'role:tatausaha'])->group(function () {
     Route::get('tatausaha/dashboard', [TataUsahaController::class, 'dashboard'])->name('tatausaha.dashboard');
     Route::get('tatausaha/letters', [TataUsahaController::class, 'letters'])->name('tatausaha.letters');
     Route::post('tatausaha/letters/{id}/upload', [TataUsahaController::class, 'upload'])->name('tatausaha.letters.upload');
+    Route::get('tatausaha/letters/{id}', [TataUsahaController::class, 'show'])->name('tatausaha.letters.show');
+});
+
+// Semuanya
+Route::middleware(['auth'])->group(function () {
+    // Route::get('ketua/dashboard', [KetuaProgramStudiController::class, 'dashboard'])->name('ketua.dashboard');
+    // Route::get('ketua/letters', [KetuaProgramStudiController::class, 'letters'])->name('ketua.letters');
+    // Route::post('ketua/letters/{id}/approve', [KetuaProgramStudiController::class, 'approve'])->name('ketua.letters.approve');
+    // Route::post('ketua/letters/{id}/reject', [KetuaProgramStudiController::class, 'reject'])->name('ketua.letters.reject');
+    // Route::get('ketua/letters/{id}', [KetuaProgramStudiController::class, 'show'])->name('ketua.letters.show');
+    Route::get('letters/download/{id}', [MahasiswaController::class, 'download'])->name('mahasiswa.letters.download');
 });

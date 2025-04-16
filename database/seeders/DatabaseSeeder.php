@@ -12,14 +12,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Seed Program Studi using DB::table to avoid timestamp issues
-        $programStudiData = [
-            ['nama_prodi' => 'Teknik Informatika'],
-            ['nama_prodi' => 'Sistem Informasi'],
-            ['nama_prodi' => 'Magister Ilmu Komputer'],
-        ];
+        // $programStudiData = [
+        //     ['nama_prodi' => 'Teknik Informatika'],
+        //     ['nama_prodi' => 'Sistem Informasi'],
+        //     ['nama_prodi' => 'Magister Ilmu Komputer'],
+        // ];
 
-        DB::table('program_studi')->insert($programStudiData);
-
+        // DB::table('program_studi')->insert($programStudiData);
+        $this->call([
+            ProgramStudiSeeder::class,
+            SuratSeeder::class,
+        ]);
         // Fetch the inserted program studies to get their IDs
         $ti = ProgramStudi::where('nama_prodi', 'Teknik Informatika')->first();
         $si = ProgramStudi::where('nama_prodi', 'Sistem Informasi')->first();
@@ -74,10 +77,7 @@ class DatabaseSeeder extends Seeder
             'program_studi_id_prodi' => $si->id_prodi,
         ]);
         
-        $this->call([
-            ProgramStudiSeeder::class,
-            SuratSeeder::class,
-        ]);
+        
     }
 
 }

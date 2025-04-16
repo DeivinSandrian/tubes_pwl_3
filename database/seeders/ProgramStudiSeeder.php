@@ -16,5 +16,9 @@ class ProgramStudiSeeder extends Seeder
         ProgramStudi::create([
             'nama_prodi' => 'Sistem Informasi',
         ]);
+
+        ProgramStudi::create([
+            'nama_prodi' => 'Magister Ilmu Komputer',
+        ]);
     }
 }

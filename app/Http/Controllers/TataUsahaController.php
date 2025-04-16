@@ -13,17 +13,28 @@ class TataUsahaController extends Controller
     /**
      * Display approved letters ready for processing
      */
+    // public function dashboard()
+    // {
+    //     $letters = Surat::with(['user', 'persetujuan', 'uploadSurat'])
+    //         ->where('status_pengajuan', 'approved')
+    //         ->whereHas('user', function($query) {
+    //             $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
+    //         })
+    //         ->latest()
+    //         ->get();
+
+    //     return view('tata_usaha.dashboard', compact('letters'));
+    // }
+
     public function dashboard()
     {
-        $letters = Surat::with(['user', 'persetujuan', 'uploadSurat'])
-            ->where('status_pengajuan', 'approved')
-            ->whereHas('user', function($query) {
-                $query->where('program_studi_id_prodi', Auth::user()->program_studi_id_prodi);
-            })
-            ->latest()
+        $user = Auth::user();
+        $surats = Surat::where('program_studi_id_prodi', $user->program_studi_id_prodi)
+            ->whereIn('status_pengajuan', ['approved', 'completed'])
+            ->with('user')
             ->get();
 
-        return view('tata_usaha.dashboard', compact('letters'));
+        return view('tata_usaha.dashboard', compact('surats'));
     }
 
     /**
@@ -47,15 +58,15 @@ class TataUsahaController extends Controller
     public function uploadLetter(Request $request, $id)
     {
         $request->validate([
-            'file_surat' => 'required|file|mimes:pdf|max:2048',
+            'file_path' => 'required|file|mimes:pdf|max:2048',
         ]);
 
         $letter = $this->getValidApprovedLetter($id);
         
-        $filePath = $request->file('file_surat')->store('letters', 'public');
+        $filePath = $request->file('file_path')->store('letters', 'public');
 
         UploadSurat::create([
-            'file_surat' => $filePath,
+            'file_path' => $filePath,
             'tanggal_upload' => now(),
             'status_upload' => 'uploaded',
             'surat_id_surat' => $letter->id_surat,
@@ -94,28 +105,85 @@ class TataUsahaController extends Controller
         );
     }
 
+    // public function upload(Request $request, $id)
+    // {
+    // $request->validate([
+    //     'file' => 'required|file|mimes:pdf|max:2048', // PDF files, max 2MB
+    // ]);
+
+    // $pengajuan = Pengajuan::findOrFail($id);
+
+    // if ($pengajuan->status !== 'approved') {
+    //     return redirect()->route('tatausaha.letters')->with('error', 'Cannot upload document for this request.');
+    // }
+
+    // $file = $request->file('file');
+    // $filePath = $file->store('letters', 'public'); // Store in storage/app/public/letters
+
+    // DetailSurat::create([
+    //     'pengajuan_id_pengajuan' => $pengajuan->id_pengajuan,
+    //     'file_path' => $filePath,
+    // ]);
+
+    // $pengajuan->update(['status' => 'completed']);
+
+    // return redirect()->route('tatausaha.letters')->with('success', 'Document uploaded successfully.');
+    // }
+
     public function upload(Request $request, $id)
-{
-    $request->validate([
-        'file' => 'required|file|mimes:pdf|max:2048', // PDF files, max 2MB
-    ]);
+    {
+        $surat = Surat::findOrFail($id);
 
-    $pengajuan = Pengajuan::findOrFail($id);
+        $request->validate([
+            'file_path' => 'required|file|mimes:pdf|max:2048', // max 2MB
+        ]);
 
-    if ($pengajuan->status !== 'approved') {
-        return redirect()->route('tatausaha.letters')->with('error', 'Cannot upload document for this request.');
+        // // Hapus file lama jika ada
+        // if ($surat->file_path && Storage::exists($surat->file_path)) {
+        //     Storage::delete($surat->file_path);
+        // }
+
+        // Hapus file lama jika ada
+        if ($surat->file_path && Storage::disk('local')->exists('app/private/' . $surat->file_path)) {
+        Storage::disk('local')->delete('app/private/' . $surat->file_path);
+        }
+
+        $path = $request->file('file_path')->store('surat');
+
+        $surat->update([
+            'file_path' => $path,
+            'status_pengajuan' => 'completed', // update status jika perlu
+        ]);
+
+        return redirect()->back()->with('success', 'File surat berhasil diunggah.');
     }
 
-    $file = $request->file('file');
-    $filePath = $file->store('letters', 'public'); // Store in storage/app/public/letters
+    public function show($id)
+    {
+    $surat = Surat::findOrFail($id);
 
-    DetailSurat::create([
-        'pengajuan_id_pengajuan' => $pengajuan->id_pengajuan,
-        'file_path' => $filePath,
+    // // Pastikan hanya user yang mengajukan yang bisa lihat
+    // if ($surat->user_id_user !== Auth::id()) {
+    //     return redirect()->route('mahasiswa.dashboard')->with('error', 'Anda tidak memiliki akses ke surat ini.');
+    // }
+
+    // Tentukan view berdasarkan jenis surat
+    $viewMap = [
+        'SKMA' => 'mahasiswa.letters.show-skma',
+        'SKT' => 'mahasiswa.letters.show-skt',
+        'SPTMK' => 'mahasiswa.letters.show-sptmk',
+        'LHS' => 'mahasiswa.letters.show-lhs',
+    ];
+
+    $jenis = $surat->jenis_surat;
+
+    if (!array_key_exists($jenis, $viewMap)) {
+        return redirect()->route('tatausaha.dashboard')->with('error', 'Jenis surat tidak dikenali.');
+    }
+
+    return view($viewMap[$jenis], [
+        'surat' => $surat,
+        'title' => 'Detail Surat ' . $jenis,
     ]);
-
-    $pengajuan->update(['status' => 'completed']);
-
-    return redirect()->route('tatausaha.letters')->with('success', 'Document uploaded successfully.');
-}
+    }
 }

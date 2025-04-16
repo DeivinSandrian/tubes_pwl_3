@@ -1,63 +1,64 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="container">
-    <h2>Daftar Surat Disetujui</h2>
-    
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
+@section('title', 'Dashboard Ketua Program Studi')
 
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Jenis Surat</th>
-                    <th>Mahasiswa</th>
-                    <th>Tanggal Disetujui</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($letters as $index => $letter)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ ucfirst($letter->jenis_surat) }}</td>
-                        <td>{{ $letter->user->name }}</td>
-                        <td>{{ $letter->tanggal_persetujuan->format('d/m/Y') }}</td>
-                        <td>
-                            @if($letter->uploadSurat)
-                                <span class="badge bg-success">Selesai</span>
-                            @else
-                                <span class="badge bg-warning text-dark">Menunggu Upload</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if(!$letter->uploadSurat)
-                                <a href="{{ route('tata_usaha.create.form', $letter->id_surat) }}" 
-                                   class="btn btn-sm btn-primary">
-                                    Buat Surat
-                                </a>
-                            @else
-                                <a href="{{ Storage::url($letter->uploadSurat->file_surat) }}" 
-                                   target="_blank" 
-                                   class="btn btn-sm btn-success">
-                                    Lihat Surat
-                                </a>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center">Tidak ada surat yang perlu diproses</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
+@section('content')
+
+        <div class="main-panel">
+            <div class="content-wrapper">
+                <div class="row">
+                    <div class="col-lg-12 grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">Daftar Surat Pengajuan</h4>
+                                <p class="card-description">Daftar surat yang diajukan</p>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Jenis Surat</th>
+                                                <th>Nama Mahasiswa</th>
+                                                <th>Tanggal Pengajuan</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($surats as $index => $surat)
+                                            <tr>
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $surat->jenis_surat ?? 'Tidak Tersedia' }}</td>
+                                                <td>{{ $surat->user->nama ?? 'Tidak Tersedia' }}</td>
+                                                <td>{{ $surat->created_at->format('d M Y') }}</td>
+                                                <td>@if ($surat->status_pengajuan == 'pending')
+                                                            <button type="button" class="btn btn-outline-warning btn-fw">{{ ucfirst($surat->status_pengajuan) }}</button>
+                                                        @elseif ($surat->status_pengajuan == 'approved')
+                                                            <button type="button" class="btn btn-outline-success btn-fw">{{ ucfirst($surat->status_pengajuan) }}</button>
+                                                        @elseif ($surat->status_pengajuan == 'rejected')
+                                                            <button type="button" class="btn btn-outline-danger btn-fw">{{ ucfirst($surat->status_pengajuan) }}</button>
+                                                        @elseif ($surat->status_pengajuan == 'completed')
+                                                            <button type="button" class="btn btn-outline-primary btn-fw">{{ ucfirst($surat->status_pengajuan) }}</button>
+                                                        @else
+                                                            <button type="button" class="btn btn-outline-secondary btn-fw">{{ ucfirst($surat->status_pengajuan) }}</button>
+                                                        @endif</td>
+                                                <td>
+                                                    <a href="{{ route('tatausaha.letters.show', $surat->id_surat) }}" class="btn btn-sm btn-primary">View</a>
+                                                </td>
+                                            </tr>
+                                            @empty
+                                            <tr>
+                                                <td colspan="5" class="text-center">Belum ada surat yang diajukan.</td>
+                                            </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 @endsection
