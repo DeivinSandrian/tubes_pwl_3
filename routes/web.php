@@ -14,6 +14,25 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// First-time Admin Registration (only accessible if no admin exists)
+Route::get('admin/register', [App\Http\Controllers\AdminController::class, 'register'])->name('admin.register');
+Route::post('admin/register', [App\Http\Controllers\AdminController::class, 'store']);
+
+// Admin Routes
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Admin Dashboard
+    Route::get('admin/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    
+
+    // Manage Users (Mahasiswa, Ketua, Tata Usaha)
+    Route::resource('admin/users', App\Http\Controllers\Admin\UserController::class)->names('admin.users');
+
+    // Manage Kaprodi and Tata Usaha Roles
+    Route::get('admin/roles', [App\Http\Controllers\AdminController::class, 'manageRoles'])->name('admin.roles');
+    Route::post('admin/roles/kaprodi', [App\Http\Controllers\AdminController::class, 'updateKaprodi'])->name('admin.roles.kaprodi');
+    Route::post('admin/roles/tatausaha', [App\Http\Controllers\AdminController::class, 'updateTataUsaha'])->name('admin.roles.tatausaha');
+});
+
 // Authentication Routes (replacing Auth::routes())
 Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
 Route::post('login', [AuthenticatedSessionController::class, 'store']);
