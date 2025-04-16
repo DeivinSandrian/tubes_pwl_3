@@ -28,8 +28,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.users.index') }}">
-                        <i class="icon-user menu-icon"></i>
+                        
                         <span class="menu-title">Manage Users</span>
+                        <i class="icon-user menu-icon mdi mdi-account"></i>
                     </a>
                 </li>
                 <!-- <li class="nav-item">

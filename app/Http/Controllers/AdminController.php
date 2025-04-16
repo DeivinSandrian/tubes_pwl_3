@@ -34,7 +34,7 @@ class AdminController extends Controller
             'nama' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:user',
             'password' => 'required|string|min:8|confirmed',
-            'program_studi_id_prodi' => 'required|exists:program_studi,id_prodi',
+            // 'program_studi_id_prodi' => 'required|exists:program_studi,id_prodi',
         ]);
 
         User::create([
@@ -42,7 +42,7 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin',
-            'program_studi_id_prodi' => $request->program_studi_id_prodi, // Admin does not belong to any program study
+            // 'program_studi_id_prodi' => $request->program_studi_id_prodi, // Admin does not belong to any program study
         ]);
 
         return redirect()->route('login')->with('success', 'Admin registered successfully. Please log in.');

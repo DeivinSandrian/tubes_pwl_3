@@ -14,7 +14,7 @@
     <form class="pt-3" method="POST" action="{{ route('admin.register') }}">
         @csrf
 
-        <input type="hidden" name="program_studi_id_prodi" value="1">
+        <input type="hidden" name="program_studi_id_prodi" value="1" id="program_studi_id_prodi">
 
         <!-- Nama -->
         <div class="form-group">

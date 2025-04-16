@@ -29,7 +29,7 @@
                         @endforeach
                     </ul>
                     <!-- Tombol untuk menandai semua notifikasi sebagai dibaca -->
-                    <form action="{{ route('ketua.notifications.markAsRead') }}" method="POST" class="mt-3">
+                    <form action="{{ route('tatausaha.notifications.markAsRead') }}" method="POST" class="mt-3">
                         @csrf
                         <button type="submit" class="btn btn-light">Tandai Semua Sudah Dibaca</button>
                     </form>
