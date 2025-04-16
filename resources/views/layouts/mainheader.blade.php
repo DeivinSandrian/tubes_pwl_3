@@ -13,9 +13,7 @@
 
                 <ul class="navbar-nav navbar-nav-right" style="padding-right: 1rem;">
                     @if (Auth::check())
-                        <!-- @foreach (Auth::user()->unreadNotifications as $notif)
-                        <li>{{ $notif->data['message'] }}</li>
-                        @endforeach -->
+                        
                         <li class="nav-item dropdown">
                             <a class="nav-link" id="profileDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
                                 <div class="navbar-profile">
