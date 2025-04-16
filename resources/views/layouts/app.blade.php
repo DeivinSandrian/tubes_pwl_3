@@ -82,7 +82,7 @@
     }
     </style>`
 </head>
-
+@stack('scripts')
 <body>
     <div class="container-scroller">
         

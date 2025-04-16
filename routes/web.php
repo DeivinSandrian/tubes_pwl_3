@@ -39,6 +39,9 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('/letters/create/{type}', [MahasiswaController::class, 'create'])->name('mahasiswa.letters.create');
     Route::post('/letters/store', [MahasiswaController::class, 'store'])->name('mahasiswa.letters.store');
     Route::get('/letters/{id}', [MahasiswaController::class, 'show'])->name('mahasiswa.letters.show');
+    Route::get('letters/{id}/edit', [MahasiswaController::class, 'edit'])->name('mahasiswa.letters.edit');
+    Route::put('letters/{id}', [MahasiswaController::class, 'update'])->name('mahasiswa.letters.update');
+    Route::delete('letters/{id}', [MahasiswaController::class, 'destroy'])->name('mahasiswa.letters.destroy');
 });
 
 // Ketua Routes

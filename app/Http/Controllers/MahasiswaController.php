@@ -8,6 +8,7 @@ use App\Notifications\SuratDiajukanNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Redirect;
 
 class MahasiswaController extends Controller
 {
@@ -180,6 +181,103 @@ class MahasiswaController extends Controller
     // Kirim response file
     return response()->download(storage_path('app/private/' . $surat->file_path));
     }
+
+
+    public function edit($id)
+    {
+    $surat = Surat::findOrFail($id);
+
+    if ($surat->user_id_user !== Auth::user()->id_user) {
+        return redirect()->route('mahasiswa.dashboard')->with('error', 'Anda tidak memiliki akses ke surat ini.');
+    }
+
+    $viewMap = [
+        'SKMA' => 'mahasiswa.letters.edit-skma',
+        'SKT' => 'mahasiswa.letters.edit-skt',
+        'SPTMK' => 'mahasiswa.letters.edit-sptmk',
+        'LHS' => 'mahasiswa.letters.edit-lhs',
+    ];
+
+    if (!array_key_exists($surat->jenis_surat, $viewMap)) {
+        return redirect()->route('mahasiswa.dashboard')->with('error', 'Jenis surat tidak dikenali.');
+    }
+
+    return view($viewMap[$surat->jenis_surat], compact('surat'));
+    }
+
+
+    public function update(Request $request, $id)
+    {
+    $surat = Surat::findOrFail($id);
+
+    if ($surat->user_id_user !== Auth::user()->id_user) {
+        return redirect()->route('mahasiswa.dashboard')->with('error', 'Anda tidak memiliki akses untuk mengubah surat ini.');
+    }
+
+    $validated = $request->validate([
+        'semester' => 'nullable|integer',
+        'alamat_lengkap_bandung' => 'nullable|string|max:255',
+        'keperluan_pengajuan' => 'nullable|string|max:255',
+        'surat_ditujukan_kepada' => 'nullable|string|max:255',
+        'nama_mata_kuliah' => 'nullable|string|max:255',
+        'kode_mata_kuliah' => 'nullable|string|max:255',
+        'data_mahasiswa' => 'nullable|string|max:255',
+        'topik' => 'nullable|string|max:255',
+        'tanggal_kelulusan' => 'nullable|date',
+    ]);
+
+    // Update field sesuai jenis surat
+    switch ($surat->jenis_surat) {
+        case 'SKMA':
+            $surat->semester = $request->semester;
+            $surat->alamat_lengkap_bandung = $request->alamat_lengkap_bandung;
+            $surat->keperluan_pengajuan = $request->keperluan_pengajuan;
+            break;
+
+        case 'SKT':
+            $surat->tanggal_kelulusan = $request->tanggal_kelulusan;
+            break;
+
+        case 'SPTMK':
+            $surat->surat_ditujukan_kepada = $request->surat_ditujukan_kepada;
+            $surat->nama_mata_kuliah = $request->nama_mata_kuliah;
+            $surat->kode_mata_kuliah = $request->kode_mata_kuliah;
+            $surat->semester = $request->semester;
+            $surat->data_mahasiswa = $request->data_mahasiswa;
+            $surat->keperluan_pengajuan = $request->keperluan_pengajuan;
+            $surat->topik = $request->topik;
+            break;
+
+        case 'LHS':
+            $surat->keperluan_pengajuan = $request->keperluan_pengajuan;
+            break;
+    }
+
+    $surat->save();
+
+    return Redirect::route('mahasiswa.letters.show', $id)->with('success', 'Surat berhasil diperbarui.');
+    }
+
+
+    public function destroy($id)
+    {
+    $surat = Surat::findOrFail($id);
+
+    // Pastikan hanya pemilik surat yang bisa menghapus
+    if ($surat->user_id_user !== Auth::user()->id_user) {
+        return redirect()->route('mahasiswa.dashboard')->with('error', 'Anda tidak memiliki akses untuk menghapus surat ini.');
+    }
+
+    // Hapus file jika ada
+    if ($surat->file_path && \Storage::exists($surat->file_path)) {
+        \Storage::delete($surat->file_path);
+    }
+
+    $surat->delete();
+
+    return redirect()->route('mahasiswa.dashboard')->with('success', 'Surat berhasil dihapus.');
+    }
+
 
 
 

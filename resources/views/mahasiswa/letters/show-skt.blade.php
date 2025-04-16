@@ -63,10 +63,32 @@
                                 <button type="submit" class="btn btn-primary mt-2"><i class="mdi mdi-upload">Upload</i></button>
                             </form>
                         @endif
+                        <!-- {{-- Tombol Edit & Hapus untuk Mahasiswa Pemilik Surat --}} -->
+                        @if (Auth::user()->role === 'mahasiswa' && Auth::user()->id_user === $surat->user_id_user)
+                            <div class="mt-4">
+                                <a href="{{ route('mahasiswa.letters.edit', $surat->id_surat) }}" class="btn btn-warning">
+                                    <i class="mdi mdi-pencil"></i> Edit
+                                </a>
+                                <form action="{{ route('mahasiswa.letters.destroy', $surat->id_surat) }}" method="POST" onsubmit="return confirmDelete()" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="mdi mdi-delete"></i> Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+    function confirmDelete() {
+        return confirm('Apakah Anda yakin ingin menghapus surat ini? Tindakan ini tidak dapat dibatalkan.');
+    }
+</script>
+@endpush
 @endsection

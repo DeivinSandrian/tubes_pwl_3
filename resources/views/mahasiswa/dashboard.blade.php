@@ -18,6 +18,7 @@
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
+                                                <th>No</th>
                                                 <th>Letter Type</th>
                                                 <th>Status</th>
                                                 <th>Submission Date</th>
@@ -27,6 +28,7 @@
                                         <tbody>
                                             @foreach ($surats as $surat)
                                                 <tr>
+                                                    <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $surat->jenis_surat }}</td>
                                                     <td>@if ($surat->status_pengajuan == 'pending')
                                                             <button type="button" class="btn btn-outline-warning btn-fw">{{ ucfirst($surat->status_pengajuan) }}</button>
