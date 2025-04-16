@@ -114,7 +114,7 @@ class MahasiswaController extends Controller
             $data['keperluan_pengajuan'] = $request->keperluan_pengajuan;
         }
 
-        Surat::create($data);
+        // Surat::create($data);
         $surat = Surat::create($data);
 
         // kirim notifikasi ke kaprodi

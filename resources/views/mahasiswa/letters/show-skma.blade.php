@@ -66,7 +66,7 @@
                             </form>
                         @endif
                         <!-- {{-- Tombol Edit & Hapus untuk Mahasiswa Pemilik Surat --}} -->
-                        @if (Auth::user()->role === 'mahasiswa' && Auth::user()->id_user === $surat->user_id_user)
+                        @if (Auth::user()->role === 'mahasiswa' && Auth::user()->id_user === $surat->user_id_user && $surat->status_pengajuan === 'pending')
                             <div class="mt-4">
                                 <a href="{{ route('mahasiswa.letters.edit', $surat->id_surat) }}" class="btn btn-warning">
                                     <i class="mdi mdi-pencil"></i> Edit
