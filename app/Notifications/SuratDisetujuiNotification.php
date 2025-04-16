@@ -14,9 +14,9 @@ class SuratDisetujuiNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct($surat)
     {
-        //
+        $this->surat = $surat;
     }
 
     /**
@@ -26,7 +26,7 @@ class SuratDisetujuiNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['database'];
     }
 
     /**
@@ -35,9 +35,11 @@ class SuratDisetujuiNotification extends Notification
     public function toMail($notifiable)
     {
         return [
-            'message' => 'Surat #' . $this->surat->id_surat . ' telah disetujui oleh Kaprodi.',
+            'message' => 'Surat baru telah disetujui oleh Kaprodi dengan surat_id : ' . $this->surat->id_surat,
             'surat_id' => $this->surat->id_surat,
             'jenis_surat' => $this->surat->jenis_surat,
+            'user_id' => $this->surat->user->id_user,
+            'user_name' => $this->surat->user->nama,
         ];
     }
 
@@ -49,7 +51,11 @@ class SuratDisetujuiNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'message' => 'Surat baru telah disetujui oleh Kaprodi dengan surat_id : ' . $this->surat->id_surat,
+            'surat_id' => $this->surat->id_surat,
+            'jenis_surat' => $this->surat->jenis_surat,
+            'user_id' => $this->surat->user->id_user,
+            'user_name' => $this->surat->user->nama,
         ];
     }
 }

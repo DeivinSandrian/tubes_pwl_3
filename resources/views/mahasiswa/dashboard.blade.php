@@ -9,7 +9,7 @@
                 <div class="col-md-12 grid-margin">
                     <div class="card">
                         <div class="card-body">
-                            <h4 class="card-title">Welcome, {{ Auth::user()->nama }}!</h4>
+                            <h4 class="card-title">Welcome, {{ Auth::user()->nama }}</h4>
                             <p class="card-description">Your Letter Requests</p>
                             @if ($surats->isEmpty())
                                 <p>No letter requests found.</p>

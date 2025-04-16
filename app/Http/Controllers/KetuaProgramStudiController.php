@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Surat;
+use App\Models\User;
+use App\Notifications\SuratDisetujuiNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+
 
 class KetuaProgramStudiController extends Controller
 {
@@ -19,7 +22,17 @@ class KetuaProgramStudiController extends Controller
             ->with('user')
             ->get();
 
-        return view('ketua_program_studi.dashboard', compact('surats'));
+        $notifications = Auth::user()->unreadNotifications;
+
+        return view('ketua_program_studi.dashboard', compact('surats', 'notifications'));
+    }
+
+    public function markNotificationsAsRead(Request $request)
+    {
+        // Tandai semua notifikasi pengguna saat ini sebagai dibaca
+        Auth::user()->unreadNotifications->markAsRead();
+
+        return redirect()->route('ketua.dashboard')->with('success', 'Semua notifikasi telah ditandai sebagai dibaca.');
     }
     // $user = Auth::user();
     // $surats = Surat::where('user_id_user', $user->id_user)->with('programStudi')->get();
@@ -45,9 +58,17 @@ class KetuaProgramStudiController extends Controller
         if (Auth::user()->role === 'ketua' && $surat->status_pengajuan === 'pending') {
             $surat->status_pengajuan = 'approved';
             $surat->save();
+            // Kirim notifikasi ke Tata Usaha
+            $tus = User::where('role', 'tatausaha')
+            ->where('program_studi_id_prodi', $surat->program_studi_id_prodi)
+            ->get();
 
+            foreach ($tus as $tu) {
+                $tu->notify(new SuratDisetujuiNotification($surat));
+            }
             return redirect()->route('ketua.dashboard')->with('success', 'Surat berhasil disetujui.');
         }
+        
 
         return redirect()->route('ketua.dashboard')->with('error', 'Aksi tidak diizinkan.');
     }

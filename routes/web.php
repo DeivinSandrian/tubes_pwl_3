@@ -48,6 +48,7 @@ Route::middleware(['auth', 'role:ketua'])->group(function () {
     Route::post('ketua/letters/{id}/approve', [KetuaProgramStudiController::class, 'approve'])->name('ketua.letters.approve');
     Route::post('ketua/letters/{id}/reject', [KetuaProgramStudiController::class, 'reject'])->name('ketua.letters.reject');
     Route::get('ketua/letters/{id}', [KetuaProgramStudiController::class, 'show'])->name('ketua.letters.show');
+    Route::post('ketua/notifications/mark-as-read', [KetuaProgramStudiController::class, 'markNotificationsAsRead'])->name('ketua.notifications.markAsRead');
 });
 
 // Tata Usaha Routes
@@ -56,6 +57,7 @@ Route::middleware(['auth', 'role:tatausaha'])->group(function () {
     Route::get('tatausaha/letters', [TataUsahaController::class, 'letters'])->name('tatausaha.letters');
     Route::post('tatausaha/letters/{id}/upload', [TataUsahaController::class, 'upload'])->name('tatausaha.letters.upload');
     Route::get('tatausaha/letters/{id}', [TataUsahaController::class, 'show'])->name('tatausaha.letters.show');
+    Route::post('tatausaha/notifications/mark-as-read', [TataUsahaController::class, 'markNotificationsAsRead'])->name('tatausaha.notifications.markAsRead');
 });
 
 // Semuanya
@@ -66,4 +68,5 @@ Route::middleware(['auth'])->group(function () {
     // Route::post('ketua/letters/{id}/reject', [KetuaProgramStudiController::class, 'reject'])->name('ketua.letters.reject');
     // Route::get('ketua/letters/{id}', [KetuaProgramStudiController::class, 'show'])->name('ketua.letters.show');
     Route::get('letters/download/{id}', [MahasiswaController::class, 'download'])->name('mahasiswa.letters.download');
+    
 });

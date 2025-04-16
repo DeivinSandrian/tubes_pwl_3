@@ -34,7 +34,17 @@ class TataUsahaController extends Controller
             ->with('user')
             ->get();
 
-        return view('tata_usaha.dashboard', compact('surats'));
+        $notifications = Auth::user()->unreadNotifications;
+
+        return view('tata_usaha.dashboard', compact('surats', 'notifications'));
+    }
+
+    public function markNotificationsAsRead(Request $request)
+    {
+        // Tandai semua notifikasi pengguna saat ini sebagai dibaca
+        Auth::user()->unreadNotifications->markAsRead();
+
+        return redirect()->route('tatausaha.dashboard')->with('success', 'Semua notifikasi telah ditandai sebagai dibaca.');
     }
 
     /**

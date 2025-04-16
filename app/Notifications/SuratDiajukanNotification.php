@@ -34,12 +34,15 @@ class SuratDiajukanNotification extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail($notifiable)
+    public function toDatabase($notifiable)
     {
         return [
             'message' => 'Surat baru telah diajukan oleh ' . $this->surat->user->nama,
             'surat_id' => $this->surat->id_surat,
             'jenis_surat' => $this->surat->jenis_surat,
+            'user_id' => $this->surat->user->id_user,
+            'user_name' => $this->surat->user->nama,
+            
         ];
     }
 
@@ -51,7 +54,11 @@ class SuratDiajukanNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'message' => 'Surat baru telah diajukan oleh ' . $this->surat->user->nama,
+            'surat_id' => $this->surat->id_surat,
+            'jenis_surat' => $this->surat->jenis_surat,
+            'user_id' => $this->surat->user->id_user,
+            'user_name' => $this->surat->user->nama,
         ];
     }
 }
