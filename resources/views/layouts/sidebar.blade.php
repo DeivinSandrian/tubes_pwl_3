@@ -19,12 +19,26 @@
                 <i class="mdi mdi-home menu-icon"></i>
             </a>
         </li>
+        @if (AUth::user()->role === 'admin')
         <li class="nav-item">
-            <a class="nav-link" href="{{ route(Auth::user()->role . '.letters') }}">
-                <span class="menu-title">Letters</span>
-                <i class="mdi mdi-email menu-icon"></i>
-            </a>
-        </li>
+                <!-- <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                    <i class="icon-grid menu-icon"></i>
+                    <span class="menu-title">Dashboard</span>
+                </a> -->
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.users.index') }}">
+                        <i class="icon-user menu-icon"></i>
+                        <span class="menu-title">Manage Users</span>
+                    </a>
+                </li>
+                <!-- <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.roles') }}">
+                        <i class="icon-users menu-icon"></i>
+                        <span class="menu-title">Manage Roles</span>
+                    </a>
+                </li> -->
+            @endif
         @if (Auth::user()->role === 'mahasiswa')
             <li class="nav-item">
                 <a class="nav-link" data-toggle="collapse" href="#create-letter-menu" aria-expanded="false" aria-controls="create-letter-menu">

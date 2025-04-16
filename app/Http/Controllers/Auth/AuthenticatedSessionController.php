@@ -38,6 +38,8 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('ketua.dashboard');
             case 'tatausaha':
                 return redirect()->route('tatausaha.dashboard');
+            case 'admin':
+                return redirect()->route('admin.dashboard');
             default:
                 return redirect('/');
         }
